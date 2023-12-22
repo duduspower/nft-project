@@ -1,0 +1,16 @@
+do zrobienia : 
+1.ma wysyłać response na jakiś określony adres więc zobaczyć jak można wysłać jakiegoś jsona na jakiś adress(do innej aplikacji czy coś) pewnie będzie strzał postem z payloadem w postaci jsona
+2.trzeba zrobić jakiś listener który będzie nasłuchiwał na zmianę na "portfelu" i bezzwłocznie(po zawarciu tranzakcji blockchain) (pewnie tu walniemy wzorzec obserwator) powiadomy apkę że coś tam się zmieniło
+3.pobranie danych z tego listenera wypakowanie tylko tych rzeczy które są potrzebne i sprawdzenie czy taki już nie został wcześniej zwrócony
+4.zapewnić że wyniki są unikalne
+5.na każdy transfer przypada tylko jedno powiadomienie
+6.jeśli w ramach jednej tranzakcji jest kilka transferów nft to należy wysłać jedno powiadomienie agregujące informacje o dokonanych transferach
+7.musi korzystać z paczki web3 (https://www.npmjs.com/package/web3)
+8.obsługuje blockchain Ethereum, Polygon oraz Binance Smart Chain.
+9.nie można opierać się na zewnętrznym api np Alchemy notify
+10.można korzystać tylko z zewnętrznego dostawcy RPC
+11. dzięki temu będzie można ogarniać inne blockchainy
+12.transfer tokenów obsługiwany : ERC-721 i ERC-1155
+13.kompaktybilny z tokenami mintiq i Influ i kontraktami skarbnika portfela
+14.jak coś się znajdzie nowego to dopisać
+
