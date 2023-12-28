@@ -1,0 +1,2 @@
+observedWallet = '0xa9196DedDF2523B6344F7CF0f2Cc301b7babb112'
+contractAddress = '0x7DE2136f1Ae20F89Fd42346cbc839f3157914812'

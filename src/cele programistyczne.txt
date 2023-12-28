@@ -1,3 +1,0 @@
-zrobione zadania : 
-2.Pomyślne uruchomienie projektu na własnym komputerze, w tym migracje bazy
-danych.                                                                        zrobione
