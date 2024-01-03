@@ -11,25 +11,28 @@ export class TransactionService{
 
 web3 = new Web3(new Web3.providers.WebsocketProvider('wss://polygon-mumbai.g.alchemy.com/v2/MA3xOeLHGBEOPX0i2kVaqnMs5phMsJvX'));
 
-getTransactionType(inputData, adress){
-    const addressLength = 40;
-	const withoutFront = String(inputData).substring(34, inputData.length);
-	const firstAdress = withoutFront.substring(0, addressLength);
-    const nextAdressStart = addressLength + 24;
-	const secondAdress = withoutFront.substring(nextAdressStart, nextAdressStart + addressLength);
-	const adressWithout0x = String(adress).substring(2);
-    if(firstAdress.toLowerCase() === adressWithout0x.toLowerCase()) return "Withdraw";
-    if(secondAdress.toLowerCase() === adressWithout0x.toLowerCase()) return "Deposit";
+getTransactionType(transfer:any, address){
+    if(transfer.from.toLowerCase() === address.toLowerCase()) return "Withdraw";
+    if(transfer.to.toLowerCase() === address.toLowerCase()) return "Deposit";
     return "Observed address not taking part in given transaction";
 }
 
-async getTokenType(tokenId, abi, contractAddress){
-  const contract = new this.web3.eth.Contract(abi, contractAddress);
-  const ownerOf = await contract.methods.ownerOf(tokenId).call();
-  if(ownerOf) return "ERC-721";
-  const balanceOf = await contract.methods.balanceOf(tokenId).call();
-  if(balanceOf) return "ERC-1155";
-  return "Unknown Token Type";
+async getTokenType(tokenId,contractAddress){
+  	const contract = new this.web3.eth.Contract(TransactionData.getAbi(), contractAddress);
+  	const ownerOf = await contract.methods.ownerOf(tokenId).call();
+  	if(ownerOf) return "ERC-721";
+  	const balanceOf = await contract.methods.balanceOf(tokenId).call();
+  	if(balanceOf) return "ERC-1155";
+  	return "Unknown Token Type";
+}
+
+async getFromAndTo(transaction:any){
+	const decoded = this.web3.eth.abi.decodeParameters(TransactionData.getAbi()[15].inputs, transaction.input.slice(10));
+	const transfer = {
+        from : decoded.from as string,
+		to : decoded.to as string,
+    };
+	return transfer;
 }
 
 async getTokenId(txHash){
@@ -46,10 +49,11 @@ async getTimestamp(blockNumber){
 async createTransaction(output, contractAddress:string, observedAddress:string){
 		const tx = await this.web3.eth.getTransaction(output.transactionHash);// token index to ma być to czy to ma być ten index tokena mumbai np?
 		const tokenId = await this.getTokenId(tx.hash);
-		const transactionType = this.getTransactionType(tx.data, observedAddress);
+		const transfer = await this.getFromAndTo(tx);
+		const transactionType = this.getTransactionType(transfer, observedAddress);
 		const timestamp = await this.getTimestamp(tx.blockNumber);
-		const tokenType = await this.getTokenType(tokenId, TransactionData.getAbi(), contractAddress);
-		const transaction = new TransactionValue(contractAddress, tx.hash, tx.from, tx.to, transactionType, timestamp, tokenId, tokenType);
+		const tokenType = await this.getTokenType(tokenId, contractAddress);
+		const transaction = new TransactionValue(contractAddress, tx.hash, transfer.from, transfer.to, transactionType, timestamp, tokenId, tokenType);
 		const transactionString = transaction.toString();
 		this.httpService
       	.post('https://webhook.site/d6c7a688-f861-423e-8cfd-1e184ad631c0', transactionString)
@@ -58,7 +62,7 @@ async createTransaction(output, contractAddress:string, observedAddress:string){
           console.log('completed');
         },
         error: (err) => {
-          console.log("Error occured : " + err)
+          console.log("Error occured while sending data to webhook : " + err)
         },
       	});
 		return transaction;
@@ -73,7 +77,6 @@ this.web3.eth.subscribe('logs', {address:TransactionData.getContractAddress()}, 
 }).then((data) => data.on('data', async (output) => {
 	try {
 		const result = this.createTransaction(output, TransactionData.getContractAddress(), observedWallet);
-		console.log("output z createTransaction : " + result);
 		return result;
       		}
 			catch (err) {
