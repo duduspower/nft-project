@@ -50,7 +50,7 @@ export class TransactionService {
     if (hasTransfer && hasTransferEvent) {
       return 'ERC-721';
     } else if (hasTransferBatch && hasTransferBatchEvent) {
-      return 'ERC-1155';
+      return 'ERC-1155'; // todo test 1155 token transfer!!!
     } else {
       return 'Unknown Token Type';
     }
@@ -80,21 +80,12 @@ export class TransactionService {
   }
 
   async createTransaction(output, observedAddress: string) {
-    const tx = await this.web3.eth.getTransaction(output.transactionHash); // token index to ma być to czy to ma być ten index tokena mumbai np?
-    const logs = tx.logs;
-    console.log(
-      'Tx : ' +
-        JSON.stringify(tx, (_, v) =>
-          typeof v === 'bigint' ? v.toString() : v,
-        ),
-    );
-    console.log('Logs : ' + logs);
+    const tx = await this.web3.eth.getTransaction(output.transactionHash);
     const tokenId = await this.getTokenId(tx.hash);
     const transfer = await this.getFromAndTo(tx);
     const transactionType = this.getTransactionType(transfer, observedAddress); //todo enum
     const timestamp = await this.getTimestamp(tx.blockNumber);
     const tokenType = await this.getTokenType(); //todo enum
-    console.log('Transaction Type : ' + tokenType);
     const transaction = new TransactionValue(
       tx.hash,
       transfer.from,
