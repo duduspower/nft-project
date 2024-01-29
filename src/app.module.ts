@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TransactionService } from './app.transactionService';
 import { HttpModule } from '@nestjs/axios';
-import { WebhookController } from './app.controllerWebhook';
+import { TestController } from './app.testController';
 
 @Module({
   imports: [HttpModule],
-  controllers: [WebhookController],
+  controllers: [TestController],
   providers: [TransactionService],
 })
 export class AppModule {}

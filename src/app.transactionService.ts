@@ -1,9 +1,9 @@
-const { Web3 } = require('web3');
-const TransactionData = require('./app.transactionData');
-const TransactionValue = require('./app.transactionValue');
-
+import { TransactionData } from './app.transactionData';
+import { Transaction } from './app.transaction';
+import { Web3 } from "web3"
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { AddressValidator } from './app.addressValidator';
 
 @Injectable()
 export class TransactionService {
@@ -68,10 +68,13 @@ export class TransactionService {
     return transfer;
   }
 
-  async getTokenId(txHash) {
+  async getTokens(txHash:string) : Promise<{ contractAddr: string; index: string; }[]>{
     const data = await this.web3.eth.getTransactionReceipt(txHash);
-    const logs = data.logs;
-    return this.web3.utils.hexToNumber(logs[0].topics[3]);
+    const logs = data.logs; //todo multiple tokens handling
+    const index = this.web3.utils.hexToNumber(logs[0].topics[3].toString());
+    const indexes = [];
+    indexes[0] = { contractAddr: txHash, index: index}
+    return indexes
   }
 
   async getTimestamp(blockNumber) {
@@ -81,53 +84,47 @@ export class TransactionService {
 
   async createTransaction(output, observedAddress: string) {
     const tx = await this.web3.eth.getTransaction(output.transactionHash);
-    const tokenId = await this.getTokenId(tx.hash);
     const transfer = await this.getFromAndTo(tx);
     const transactionType = this.getTransactionType(transfer, observedAddress); //todo enum
     const timestamp = await this.getTimestamp(tx.blockNumber);
     const tokenType = await this.getTokenType(); //todo enum
-    const transaction = new TransactionValue(
+    const transaction = new Transaction(
       tx.hash,
       transfer.from,
       transfer.to,
       transactionType,
       timestamp,
-      tokenId,
-      tokenType,
+      await this.getTokens(tx.hash),tokenType
     );
-    const transactionString = transaction.toString();
-    this.httpService
-      .post(
-        'https://webhook.site/d6c7a688-f861-423e-8cfd-1e184ad631c0',
-        transactionString,
-      )
-      .subscribe({
-        complete: () => {
-          console.log('completed');
-        },
-        error: (err) => {
-          console.log('Error occured while sending data to webhook : ' + err);
-        },
-      });
+    console.log("sended");
+      this.httpService
+        .post(
+          'https://webhook-test.com/44783f329099ea6752d5bd91f0ae77f6',
+          JSON.stringify(transaction, (_, v) => typeof v === 'bigint' ? v.toString() : v)
+        )
+        .subscribe({
+          complete: () => {
+            console.log('completed');
+          },
+          error: (err) => {
+            console.log('Error occured while sending data to webhook : ' + err);
+          },
+        });
+      //watch webhook at : https://webhook-test.com/payload/241c71c4-0128-4804-94ef-e69ea7dd7a36
     return transaction;
   }
 
   async listenTransactions(observedWallet: string) {
+    AddressValidator.validateWalletAddress(observedWallet);
     console.log('Listening on transaction on address : ' + observedWallet);
     this.web3.eth
       .subscribe(
         'logs',
-        { address: TransactionData.getContractAddress() },
-        function (err, res) {
-          console.log(res);
-          console.log(err);
-        },
-      )
+        { address: TransactionData.getContractAddress() },)
       .then((data) =>
         data.on('data', async (output) => {
           try {
-            const result = this.createTransaction(output, observedWallet);
-            return result;
+            await this.createTransaction(output, observedWallet);
           } catch (err) {
             console.error(`Error in event callback: ${err}`);
           }

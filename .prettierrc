@@ -1,4 +1,17 @@
 {
-  "singleQuote": true,
-  "trailingComma": "all"
+  "tabWidth": 4,
+  "printWidth": 140,
+  "trailingComma": "es5",
+  "endOfLine": "lf",
+  "importOrder": [
+    "node:.",
+    "",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@app/(.*)$",
+    "",
+    "^[./]"
+  ],
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"]
 }

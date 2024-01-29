@@ -3,5 +3,12 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnPaste": true,
         "editor.formatOnSave": true
-    }
+    },
+    "javascript.format.insertSpaceAfterSemicolonInForStatements": false,
+    "typescript.format.insertSpaceAfterSemicolonInForStatements": false,
+    "prettier.semi": false,
+    "scss.completion.completePropertyWithSemicolon": false,
+    "less.completion.completePropertyWithSemicolon": false,
+    "css.completion.completePropertyWithSemicolon": false,
+    "autoimport.useSemiColon": false
 }
