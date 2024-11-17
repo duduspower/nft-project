@@ -21,6 +21,7 @@
     "type": "module"
   },
   "dependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
